@@ -1,0 +1,53 @@
+name: Silent website monitor
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/monitor.yml"
+      - "src/**"
+      - "package.json"
+      - "tsconfig.json"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dvbn-silent-monitor
+  cancel-in-progress: false
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        shell: bash
+        run: npm install --silent --no-audit --no-fund >/dev/null 2>&1
+
+      - name: Build
+        shell: bash
+        run: npm run build >/dev/null 2>&1
+
+      - name: Install Chromium
+        shell: bash
+        run: npx playwright install --with-deps chromium >/dev/null 2>&1
+
+      - name: Render and inspect all websites
+        shell: bash
+        env:
+          MAX_CYCLES: "1"
+        run: npm start >/dev/null 2>&1
