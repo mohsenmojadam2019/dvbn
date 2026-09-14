@@ -51,3 +51,5 @@ jobs:
         env:
           MAX_CYCLES: "1"
         run: npm start >/dev/null 2>&1
+
+# Scheduled public-runner homepage rendering monitor.
